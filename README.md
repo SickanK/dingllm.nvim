@@ -3,6 +3,9 @@
 
 https://github.com/yacineMTB/dingllm.nvim/assets/10282244/07cf5ace-7e01-46e3-bd2f-5bec3bb019cc
 
+### Modifications
+- Added support for loading into a context buffer
+
 ### dingllm.nvim
 Yacine's LLM nvim scripts
 
