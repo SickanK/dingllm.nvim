@@ -1,6 +1,25 @@
 local M = {}
 local Job = require("plenary.job")
 
+local function tprint(tbl, indent)
+	if not indent then
+		indent = 0
+	end
+	for k, v in pairs(tbl) do
+		local formatting = string.rep("  ", indent) .. k .. ": "
+		if type(v) == "table" then
+			print(formatting)
+			tprint(v, indent + 1)
+		elseif type(v) == "boolean" then
+			print(formatting .. tostring(v))
+		else
+			print(formatting .. v)
+		end
+	end
+end
+
+-- what is in context?
+
 function M.setup_keymaps()
 	vim.keymap.set({ "v" }, "<leader>lc", M.load_into_llm_context, { desc = "add to llm context" })
 	vim.keymap.set({ "n" }, "<leader>lx", M.clear_llm_context, { desc = "clear llm context" })
@@ -154,33 +173,22 @@ function M.handle_openai_spec_data(data_stream)
 	end
 end
 
--- 1. Can you add a keymap to clear the context?
--- 2. Should I change something in the  M.invoke_llm_and_stream_into_editor function other than what I have atm?
-
 local llm_context = {}
 
 function M.load_into_llm_context()
-	local mode = vim.api.nvim_get_mode().mode
-	if mode == "v" or mode == "V" or mode == "" then
-		local start_pos = vim.fn.getpos("'<")
-		local end_pos = vim.fn.getpos("'>")
-		local lines = vim.api.nvim_buf_get_lines(0, start_pos[2] - 1, end_pos[2], false)
+	local selected_text = M.get_visual_selection()
 
-		if #lines == 1 then
-			lines[1] = string.sub(lines[1], start_pos[3], end_pos[3])
-		else
-			lines[1] = string.sub(lines[1], start_pos[3])
-			lines[#lines] = string.sub(lines[#lines], 1, end_pos[3])
-		end
-
-		local context_block = table.concat(lines, "\n")
+	if selected_text and #selected_text > 0 then
+		local context_block = table.concat(selected_text, "\n")
 		table.insert(llm_context, string.format("Context block %d: ```\n%s\n```", #llm_context + 1, context_block))
-
 		print("Context added to LLM.")
 	else
-		print("Please select text in visual mode before calling this function")
+		print("No text selected.")
 	end
 end
+
+-- Can you tell me all of the functions in the context right now?Functions in context:
+-- Can you also tell me how to open the console while developing a lua plugin in neovim?
 
 function M.get_llm_context()
 	return table.concat(llm_context, "\n\n")
@@ -199,9 +207,9 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 	local system_prompt = opts.system_prompt
 		or "You are a tsundere uwu anime. Yell at me for not setting my configuration for my llm plugin correctly"
 
-	if #llm_context > 0 then
-		prompt = "Extra context:\n" .. M.get_llm_context() .. "\n\nUser prompt:\n" .. prompt
-	end
+	-- if #llm_context > 0 then
+	-- 	prompt = "Extra context:\n" .. M.get_llm_context() .. "\n\nUser prompt:\n" .. prompt
+	-- end
 
 	local args = make_curl_args_fn(opts, prompt, system_prompt)
 	local curr_event_state = nil
