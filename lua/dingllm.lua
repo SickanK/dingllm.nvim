@@ -201,8 +201,8 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 	local system_prompt = opts.system_prompt
 		or "You are a tsundere uwu anime. Yell at me for not setting my configuration for my llm plugin correctly"
 
-	if llm_context then
-		prompt = "Extra context:\n" .. llm_context .. "\n\nUser prompt:\n" .. prompt
+	if #llm_context > 0 then
+		prompt = "Extra context:\n" .. M.get_llm_context() .. "\n\nUser prompt:\n" .. prompt
 	end
 
 	local args = make_curl_args_fn(opts, prompt, system_prompt)
