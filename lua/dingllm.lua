@@ -1,11 +1,6 @@
 local M = {}
 local Job = require("plenary.job")
 
-function M.setup()
-	vim.keymap.set({ "v" }, "<leader>lc", M.load_into_llm_context, { desc = "add to llm context" })
-	vim.keymap.set({ "n" }, "<leader>lx", M.clear_llm_context, { desc = "clear llm context" })
-end
-
 local function get_api_key(name)
 	return os.getenv(name)
 end
@@ -157,7 +152,6 @@ function M.handle_openai_spec_data(data_stream)
 end
 
 local llm_context = {}
-
 function M.load_into_llm_context()
 	local selected_text = M.get_visual_selection()
 
