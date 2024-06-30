@@ -1,39 +1,9 @@
 local M = {}
 local Job = require("plenary.job")
 
-local group = vim.api.nvim_create_augroup("DING_LLM_AutoGroup", { clear = true })
-
 function M.setup_keymaps()
-	-- Create autocommands for custom User events
-	vim.api.nvim_create_autocmd("User", {
-		group = group,
-		pattern = "DING_LLM_LoadContext",
-		callback = function()
-			M.load_into_llm_context()
-		end,
-	})
-
-	vim.api.nvim_create_autocmd("User", {
-		group = group,
-		pattern = "DING_LLM_ClearContext",
-		callback = function()
-			M.clear_llm_context()
-		end,
-	})
-
-	-- Set up keymaps to trigger the custom User events
-	vim.api.nvim_set_keymap(
-		"v",
-		"<leader>lc",
-		":doautocmd User DING_LLM_LoadContext<CR>",
-		{ noremap = true, silent = true }
-	)
-	vim.api.nvim_set_keymap(
-		"n",
-		"<leader>lx",
-		":doautocmd User DING_LLM_ClearContext<CR>",
-		{ noremap = true, silent = true }
-	)
+	vim.keymap.set({ "v" }, "<leader>lc", M.load_into_llm_context, { desc = "add to llm context" })
+	vim.keymap.set({ "n" }, "<leader>lx", M.clear_llm_context, { desc = "clear llm context" })
 end
 
 local function get_api_key(name)
@@ -223,9 +193,8 @@ function M.clear_llm_context()
 	print("LLM context cleared.")
 end
 
-local group = vim.api.nvim_create_augroup("DING_LLM_AutoGroup", { clear = true })
 local active_job = nil
-
+local group = vim.api.nvim_create_augroup("DING_LLM_AutoGroup", { clear = true })
 function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_data_fn)
 	vim.api.nvim_clear_autocmds({ group = group })
 	local prompt = get_prompt(opts)
@@ -285,7 +254,5 @@ function M.invoke_llm_and_stream_into_editor(opts, make_curl_args_fn, handle_dat
 	vim.api.nvim_set_keymap("n", "<Esc>", ":doautocmd User DING_LLM_Escape<CR>", { noremap = true, silent = true })
 	return active_job
 end
-
-M.setup_keymaps()
 
 return M
